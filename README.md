@@ -2,17 +2,18 @@
 
 > Kickstart your projects: interactive git setup + Makefile generation.
 
-`initial-commit` is a lightweight CLI tool that automates the boring first steps of every new project. Run it, answer a few questions, and you're ready to code.
+`initial-commit` is a lightweight CLI tool that removes friction when starting a new project.
+Initialize your repo, generate a clean Makefile, and start coding in seconds.
 
 ---
 
-## Installation
+## 🚀 Installation
 
 ```bash
 pip install initial-commit
 ```
 
-For local development:
+For development:
 
 ```bash
 git clone https://github.com/dallatIkes/initial-commit.git
@@ -22,34 +23,51 @@ pip install -e .
 
 ---
 
-## Usage
-
-Just run:
+## ⚡ Quick Start
 
 ```bash
 initial-commit
 ```
 
-An interactive prompt guides you through the setup:
+Follow the interactive prompts:
 
 ```
-  ✦ initial-commit — project kickstart
+✦ initial-commit — project kickstart
 
-  ? Git setup:
-    ❯ Init a new repository
-      Clone an existing repo
-      Skip
+? Git setup:
+  ❯ Init a new repository
+    Clone an existing repo
+    Skip
 
-  ? Generate a Makefile? (Y/n)
+? Generate a Makefile? (Y/n)
 
-  ? Choose a template:
-    ❯ python.mk
-      node.mk
+? Choose a template:
+  ❯ python.mk
+    node.mk
 ```
 
 ---
 
-## Built-in templates
+## 🧠 Non-interactive usage
+
+Perfect for scripts and advanced users:
+
+```bash
+initial-commit --init
+initial-commit --clone https://github.com/user/repo
+initial-commit --template python.mk
+initial-commit --init --template python.mk --force
+```
+
+List available templates:
+
+```bash
+initial-commit --list-templates
+```
+
+---
+
+## 📦 Built-in templates
 
 | Template    | Stack                   |
 | ----------- | ----------------------- |
@@ -58,9 +76,11 @@ An interactive prompt guides you through the setup:
 
 ---
 
-## Custom templates
+## 🧩 Custom templates
 
-Drop your own `.mk` files into an `initial_commit_templates/` folder at the root of your project:
+You can extend `initial-commit` with your own templates.
+
+Create a folder named `initial_commit_templates/` at the root of your project:
 
 ```
 my-project/
@@ -68,18 +88,39 @@ my-project/
     └── rust.mk
 ```
 
-`initial-commit` will discover them automatically and give them priority over built-in templates when names collide.
+Your templates will:
+
+* be automatically detected
+* override built-in templates with the same name
 
 ---
 
-## Roadmap
+## ✨ Features
 
-- [ ] Community template registry
-- [ ] Shell completion (bash, zsh, fish)
-- [ ] Project name prompt + auto-create folder
+* Interactive CLI (guided setup)
+* Non-interactive mode (scriptable)
+* Git init & clone support
+* Built-in and custom Makefile templates
+* Safe overwrite with `--force`
 
 ---
 
-## License
+## 🛣️ Roadmap
+
+* [ ] Community template registry
+* [ ] Shell completion (bash, zsh, fish)
+* [ ] Project name prompt + auto-create folder
+* [ ] Template packs (advanced setups)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+Feel free to open issues or submit pull requests.
+
+---
+
+## 📄 License
 
 MIT © dallatIkes

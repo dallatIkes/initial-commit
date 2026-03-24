@@ -1,8 +1,19 @@
 """
 initial-commit CLI
 Kickstart your projects: git init + Makefile generation
+
+Usage (interactive):
+    initial-commit
+
+Usage (non-interactive):
+    initial-commit --init
+    initial-commit --clone https://github.com/user/repo
+    initial-commit --template python.mk
+    initial-commit --init --template python.mk --force
 """
 
+import argparse
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -32,9 +43,9 @@ def list_available_templates() -> list[str]:
     names: set[str] = set()
     external_dir = Path.cwd() / EXTERNAL_TEMPLATES_DIR
     if external_dir.is_dir():
-        names.update(p.name for p in external_dir.iterdir() if p.is_file())
+        names.update(p.name for p in external_dir.iterdir() if p.is_file() and p.suffix == ".mk")
     if TEMPLATES_DIR.is_dir():
-        names.update(p.name for p in TEMPLATES_DIR.iterdir() if p.is_file())
+        names.update(p.name for p in TEMPLATES_DIR.iterdir() if p.is_file() and p.suffix == ".mk")
     return sorted(names)
 
 
@@ -49,11 +60,13 @@ def find_template(name: str) -> Path | None:
 
 
 # ── Actions ───────────────────────────────────────────────────────────────────
-def cmd_git_init() -> None:
+def cmd_git_init(force: bool = False) -> None:
     git_dir = Path.cwd() / ".git"
-    if git_dir.exists():
-        print("⚠  Git repository already initialised in this directory.")
+    if git_dir.exists() and not force:
+        print("⚠  Git repository already exists. Use --force to reinitialise.")
         return
+    if git_dir.exists() and force:
+        shutil.rmtree(git_dir)
     result = subprocess.run(["git", "init"], capture_output=True, text=True)
     if result.returncode == 0:
         print("✔  Git repository initialised.")
@@ -75,18 +88,45 @@ def cmd_git_clone(url: str) -> Path | None:
         return None
 
 
-def cmd_generate_makefile(template_name: str, target_dir: Path | None = None) -> None:
+def cmd_generate_makefile(template_name: str, target_dir: Path | None = None, force: bool = False) -> None:
     template_path = find_template(template_name)
     if template_path is None:
         print(f"✘  Template '{template_name}' not found.", file=sys.stderr)
+        available = list_available_templates()
+        if available:
+            print(f"   Available templates: {', '.join(available)}", file=sys.stderr)
         return
+
     dest = (target_dir or Path.cwd()) / "Makefile"
+
+    if dest.exists() and not force:
+        print("⚠  Makefile already exists. Use --force to overwrite.")
+        return
+
     dest.write_text(template_path.read_text(encoding="utf-8"), encoding="utf-8")
     source = "external" if (Path.cwd() / EXTERNAL_TEMPLATES_DIR / template_name).is_file() else "internal"
-    print(f"✔  Makefile generated from {source} template '{template_name}'.")
+    print(f"✔  Makefile generated from {source} template '{template_name}' → {dest}")
 
 
-# ── Interactive flow ───────────────────────────────────────────────────────────
+# ── Non-interactive mode ───────────────────────────────────────────────────────
+def run_cli(args: argparse.Namespace) -> None:
+    clone_dir = None
+
+    if args.init:
+        cmd_git_init(force=args.force)
+    elif args.clone:
+        clone_dir = cmd_git_clone(args.clone)
+
+    if args.template:
+        if args.clone and clone_dir is None:
+            print("⚠  Skipping Makefile generation (clone failed).")
+        else:
+            cmd_generate_makefile(args.template, target_dir=clone_dir, force=args.force)
+
+    print("✨ Project ready!")
+
+
+# ── Interactive mode ───────────────────────────────────────────────────────────
 def run_interactive() -> None:
     print()
     print("  \033[1m\033[35m✦ initial-commit\033[0m — project kickstart")
@@ -108,6 +148,7 @@ def run_interactive() -> None:
 
     clone_url = None
     clone_dir = None
+    force_git = False
 
     if git_action == "clone":
         clone_url = questionary.text(
@@ -121,6 +162,19 @@ def run_interactive() -> None:
 
         clone_url = clone_url.strip()
 
+    elif git_action == "init":
+        git_dir = Path.cwd() / ".git"
+        if git_dir.exists():
+            print("  ⚠  A .git repository already exists in this directory.")
+            force_git = questionary.confirm(
+                "Reinitialise it anyway?",
+                default=False,
+                style=STYLE,
+            ).ask()
+
+            if force_git is None:
+                sys.exit(0)
+
     # 2. Generate a Makefile?
     want_makefile = questionary.confirm(
         "Generate a Makefile?",
@@ -133,6 +187,8 @@ def run_interactive() -> None:
 
     # 3. Which template?
     template_choice = None
+    force_makefile = False
+
     if want_makefile:
         templates = list_available_templates()
         if not templates:
@@ -148,23 +204,100 @@ def run_interactive() -> None:
             if template_choice is None:
                 sys.exit(0)
 
+            # Warn if Makefile already exists
+            if (Path.cwd() / "Makefile").exists():
+                print("  ⚠  A Makefile already exists in this directory.")
+                force_makefile = questionary.confirm(
+                    "Overwrite it?",
+                    default=False,
+                    style=STYLE,
+                ).ask()
+
+                if force_makefile is None:
+                    sys.exit(0)
+
+                if not force_makefile:
+                    want_makefile = False
+
     # ── Run ───────────────────────────────────────────────────────────────────
     print()
 
     if git_action == "init":
-        cmd_git_init()
+        cmd_git_init(force=force_git)
     elif git_action == "clone" and clone_url:
         clone_dir = cmd_git_clone(clone_url)
 
     if want_makefile and template_choice:
-        # For clone: drop the Makefile inside the cloned folder
-        cmd_generate_makefile(template_choice, target_dir=clone_dir)
+        if git_action == "clone" and clone_dir is None:
+            print("⚠  Skipping Makefile generation (clone failed).")
+        else:
+            cmd_generate_makefile(template_choice, target_dir=clone_dir, force=force_makefile)
 
+    print("✨ Project ready!")
     print()
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="initial-commit",
+        description="Kickstart your projects: git init + Makefile generation",
+        epilog="Run without arguments to use the interactive mode.",
+    )
+    git_group = parser.add_mutually_exclusive_group()
+    git_group.add_argument(
+        "--init",
+        action="store_true",
+        help="Initialise a git repository in the current directory",
+    )
+    git_group.add_argument(
+        "--clone",
+        metavar="URL",
+        help="Clone an existing repository",
+    )
+    parser.add_argument(
+        "--template",
+        metavar="NAME",
+        help="Generate a Makefile from a template (e.g. python.mk, node.mk)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing .git and/or Makefile",
+    )
+    parser.add_argument(
+        "--list-templates",
+        action="store_true",
+        help="List all available templates and exit",
+    )
+    return parser
+
+
 def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+
+    # --list-templates works in both modes
+    if args.list_templates:
+        templates = list_available_templates()
+        if templates:
+            print("Available templates:")
+            for t in templates:
+                print(f"  • {t}")
+        else:
+            print("No templates found.")
+        sys.exit(0)
+
+    # If any flag is passed → non-interactive mode
+    if args.init or args.clone or args.template:
+        try:
+            run_cli(args)
+        except KeyboardInterrupt:
+            print("\n  Aborted.")
+            sys.exit(0)
+        return
+
+    # No arguments → interactive mode
     try:
         run_interactive()
     except KeyboardInterrupt:
