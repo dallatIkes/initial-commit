@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "initial-commit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Kickstart your projects: git init + Makefile generation"
 readme = "README.md"
 license = { file = "LICENSE" }
