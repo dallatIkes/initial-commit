@@ -15,6 +15,7 @@ run:
 	cd $(TEST_DIR) && initial-commit
 
 build:
+	rm -rf dist
 	python -m build
 
 check: build
