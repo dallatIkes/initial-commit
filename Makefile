@@ -5,6 +5,9 @@ TEST_DIR := test-initial-commit
 dev:
 	pip install -e .
 
+init:
+	mkdir -p $(TEST_DIR)
+
 clean:
 	rm -rf $(TEST_DIR)/*
 
