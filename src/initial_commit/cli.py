@@ -67,7 +67,11 @@ def cmd_git_init(force: bool = False) -> None:
         return
     if git_dir.exists() and force:
         shutil.rmtree(git_dir)
-    result = subprocess.run(["git", "init"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["git", "init", "--initial-branch=main", "--object-format=sha1"],
+        capture_output=True,
+        text=True,
+    )
     if result.returncode == 0:
         print("✔  Git repository initialised.")
     else:
