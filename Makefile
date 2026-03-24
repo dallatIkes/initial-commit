@@ -12,9 +12,10 @@ run:
 	cd $(TEST_DIR) && initial-commit
 
 build:
-	pip install build --quiet
 	python -m build
 
+check: build
+	twine check dist/*
+
 publish: build
-	pip install twine --quiet
 	twine upload dist/*
