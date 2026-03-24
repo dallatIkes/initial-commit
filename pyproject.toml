@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "initial-commit"
+version = "0.1.0"
+description = "Kickstart your projects: git init + Makefile generation"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "dallatIkes", email = "samy.chaabi1@gmail.com" }]
+requires-python = ">=3.8"
+
+[project.scripts]
+initial-commit = "initial_commit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+initial_commit = ["templates/*.mk"]
