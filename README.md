@@ -1,8 +1,8 @@
 # initial-commit
 
-> Kickstart your projects: `git init` + Makefile generation in one command.
+> Kickstart your projects: interactive git setup + Makefile generation.
 
-`initial-commit` is a lightweight CLI tool that automates the boring first steps of every new project: initialising a Git repository and dropping a ready-to-use `Makefile` — all in a single command.
+`initial-commit` is a lightweight CLI tool that automates the boring first steps of every new project. Run it, answer a few questions, and you're ready to code.
 
 ---
 
@@ -12,7 +12,7 @@
 pip install initial-commit
 ```
 
-Or, for local development:
+For local development:
 
 ```bash
 git clone https://github.com/dallatIkes/initial-commit.git
@@ -24,40 +24,37 @@ pip install -e .
 
 ## Usage
 
-### Initialise a Git repo
+Just run:
 
 ```bash
-initial-commit --git
+initial-commit
 ```
 
-### Generate a Makefile from a built-in template
+An interactive prompt guides you through the setup:
 
-```bash
-initial-commit --template python.mk
-# or
-initial-commit --template node.mk
 ```
+  ✦ initial-commit — project kickstart
 
-### Do both at once
+  ? Git setup:
+    ❯ Init a new repository
+      Clone an existing repo
+      Skip
 
-```bash
-initial-commit --git --template python.mk
-```
+  ? Generate a Makefile? (Y/n)
 
-### List available templates
-
-```bash
-initial-commit --list-templates
+  ? Choose a template:
+    ❯ python.mk
+      node.mk
 ```
 
 ---
 
 ## Built-in templates
 
-| Template    | Language / Stack |
-|-------------|-----------------|
+| Template    | Stack                   |
+| ----------- | ----------------------- |
 | `python.mk` | Python (pytest, flake8) |
-| `node.mk`   | Node.js (npm, eslint) |
+| `node.mk`   | Node.js (npm, eslint)   |
 
 ---
 
@@ -71,16 +68,15 @@ my-project/
     └── rust.mk
 ```
 
-`initial-commit` will automatically discover them and give them priority over built-in templates when names collide.
+`initial-commit` will discover them automatically and give them priority over built-in templates when names collide.
 
 ---
 
 ## Roadmap
 
-- [ ] Premium / community template registry
-- [ ] `--list-templates` with source labels (internal / external)
-- [ ] Interactive mode (`--interactive`)
+- [ ] Community template registry
 - [ ] Shell completion (bash, zsh, fish)
+- [ ] Project name prompt + auto-create folder
 
 ---
 
